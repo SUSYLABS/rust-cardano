@@ -1,5 +1,6 @@
 use crate::{
     block::{BlockDate, BlockVersion, BlockVersionTag, Header},
+    date::Epoch,
     ledger::Ledger,
 };
 use chain_crypto::algorithms::vrf::vrf::ProvenOutputSeed;
@@ -130,7 +131,7 @@ impl Inner {
 }
 
 impl Leadership {
-    pub fn new(ledger: &Ledger) -> Self {
+    pub fn new(epoch: Epoch, ledger: &Ledger) -> Self {
         match BlockVersionTag::from_block_version(ledger.settings.block_version.clone()) {
             Some(BlockVersionTag::ConsensusNone) => Leadership {
                 inner: Inner::None(none::NoLeadership),
@@ -139,7 +140,7 @@ impl Leadership {
                 inner: Inner::Bft(bft::BftLeaderSelection::new(ledger).unwrap()),
             },
             Some(BlockVersionTag::ConsensusGenesisPraos) => Leadership {
-                inner: Inner::GenesisPraos(genesis::GenesisLeaderSelection::new(ledger)),
+                inner: Inner::GenesisPraos(genesis::GenesisLeaderSelection::new(epoch, ledger)),
             },
             None => unimplemented!(),
         }
