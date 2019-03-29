@@ -3,7 +3,6 @@ use crate::{
     date::Epoch,
     ledger::Ledger,
 };
-use chain_crypto::algorithms::vrf::vrf::ProvenOutputSeed;
 use chain_crypto::{Curve25519_2HashDH, Ed25519Extended, FakeMMM, SecretKey};
 
 pub mod bft;
@@ -119,7 +118,7 @@ impl Inner {
             }
             (Inner::GenesisPraos(genesis_praos), Leader::GenesisPraos(_kes_key, vrf_key)) => {
                 match genesis_praos.leader(vrf_key, date)? {
-                    None => unimplemented!(), // TODO? Fallback on the BFT ?
+                    None => Ok(LeaderOutput::None),
                     Some(_) => {
                         Ok(LeaderOutput::GenesisPraos) // TODO: add the output seed here too
                     }
@@ -139,9 +138,14 @@ impl Leadership {
             Some(BlockVersionTag::ConsensusBft) => Leadership {
                 inner: Inner::Bft(bft::BftLeaderSelection::new(ledger).unwrap()),
             },
-            Some(BlockVersionTag::ConsensusGenesisPraos) => Leadership {
-                inner: Inner::GenesisPraos(genesis::GenesisLeaderSelection::new(epoch, ledger)),
-            },
+            Some(BlockVersionTag::ConsensusGenesisPraos) => {
+                let node_id = unimplemented!();
+                Leadership {
+                    inner: Inner::GenesisPraos(genesis::GenesisLeaderSelection::new(
+                        node_id, epoch, ledger,
+                    )),
+                }
+            }
             None => unimplemented!(),
         }
     }
